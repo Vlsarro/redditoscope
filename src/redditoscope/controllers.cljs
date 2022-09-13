@@ -14,7 +14,7 @@
 
 (rf/reg-event-db
  :set-posts
- (fn [db [_ posts]]
+ (fn [db [_ posts]] 
    (assoc db :posts
           (->> (get-in posts [:data :children])
                (map :data)
@@ -28,10 +28,13 @@
               :response-format :json
               :keywords? true})))
 
+(defn get-reddit-url [subreddit posts-num]
+  (str "http://www.reddit.com/r/" (or subreddit "Catloaf") ".json?sort=new&limit=" (or posts-num 10)))
+
 (rf/reg-event-fx
  :load-posts
- (fn [_ [_ url]]
-   {:ajax-get [url #(rf/dispatch [:set-posts %])]}))
+ (fn [_ _] 
+   {:ajax-get [(get-reddit-url "Catloaf" 10) #(rf/dispatch [:set-posts %])]}))
 
 (rf/reg-event-db
  :sort-posts

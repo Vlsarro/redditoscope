@@ -46,11 +46,34 @@
     [navitem "Posts" view :posts]
     [navitem "Chart" view :chart]]])
 
+(defn subreddit-input []
+  [:input.form-control {:type "text"
+                        :aria-label "List subreddits separated by commas"
+                        :placeholder "List subreddits separated by commas"
+                        :value "Catloaf"
+                        :disabled true}])
+
+(defn posts-fetch-number-select [options]
+  [:select.custom-select
+   (map (fn [o] [:option {:key o :value o} o]) options)]
+  )
+
+(defn posts-load-settings-form []
+  [:div.input-group.mb-3
+   [subreddit-input]
+   [:div.input-group-append
+    [posts-fetch-number-select [1 5 10 20 30]]]
+   [:div.input-group-append
+    [:button.btn.btn-primary
+     {:on-click #(rf/dispatch [:load-posts])}
+     "Load"]]])
+
 (defn home-page []
   (let [view @(rf/subscribe [:view])]
     [:div
      [navbar view]
      [:div.card>div.card-block
+      [posts-load-settings-form]
       [:div.btn-group
        [sort-posts "score" :score]
        [sort-posts "comments" :num_comments]]
@@ -65,6 +88,5 @@
   (d/render [home-page] (.getElementById js/document "app")))
 
 (defn ^:export init! []
-  (rf/dispatch-sync [:initialize-db])
-  (rf/dispatch [:load-posts "http://www.reddit.com/r/Catloaf.json?sort=new&limit=10"])
+  (rf/dispatch-sync [:initialize-db]) 
   (mount-root))
