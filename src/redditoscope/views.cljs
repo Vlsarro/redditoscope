@@ -48,15 +48,18 @@
                         :value "Catloaf"
                         :disabled true}])
 
-(defn posts-fetch-number-select [options]
-  [:select.custom-select
-   (map (fn [o] [:option {:key o :value o} o]) options)])
+(defn posts-fetch-num-select [options]
+  (let [value @(rf/subscribe [:posts-fetch-num])]
+    [:select.custom-select
+     {:value value
+      :on-change #(rf/dispatch [:set-posts-fetch-num (-> % .-target .-value)])}
+     (map (fn [o] [:option {:key o :value o} o]) options)]))
 
 (defn posts-load-settings-form []
   [:div.input-group.mb-3
    [subreddit-input]
    [:div.input-group-append
-    [posts-fetch-number-select [1 5 10 20 30]]]
+    [posts-fetch-num-select [1 5 10 20 30]]]
    [:div.input-group-append
     [:button.btn.btn-primary
      {:on-click #(rf/dispatch [:load-posts])}

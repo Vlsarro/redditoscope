@@ -7,10 +7,16 @@
  :initialize-db
  (fn [_ _]
    {:view :posts
-    :sort-key :score}))
+    :sort-key :score
+    :posts-fetch-num 10}))
 
 (defn find-posts-with-preview [posts]
   (filter #(= (:post_hint %) "image") posts))
+
+(rf/reg-event-db
+ :set-posts-fetch-num
+ (fn [db [_ posts-fetch-num]]
+   (assoc db :posts-fetch-num (js/parseInt posts-fetch-num))))
 
 (rf/reg-event-db
  :set-posts
@@ -28,13 +34,13 @@
               :response-format :json
               :keywords? true})))
 
-(defn get-reddit-url [subreddit posts-num]
+(defn get-reddit-url [subreddit posts-num] 
   (str "http://www.reddit.com/r/" (or subreddit "Catloaf") ".json?sort=new&limit=" (or posts-num 10)))
 
 (rf/reg-event-fx
  :load-posts
- (fn [_ _] 
-   {:ajax-get [(get-reddit-url "Catloaf" 10) #(rf/dispatch [:set-posts %])]}))
+ (fn [{:keys [db]} _] 
+   {:ajax-get [(get-reddit-url "Catloaf" (:posts-fetch-num db)) #(rf/dispatch [:set-posts %])]}))
 
 (rf/reg-event-db
  :sort-posts
@@ -55,3 +61,8 @@
  :posts
  (fn [db _]
    (:posts db)))
+
+(rf/reg-sub
+ :posts-fetch-num
+ (fn [db _]
+   (:posts-fetch-num db)))
